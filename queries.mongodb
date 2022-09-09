@@ -1,0 +1,122 @@
+// mongoimport --db pokemon_center --collection pokemon --type json --file ./data/netflix.json --jsonArray
+
+use pokemon_center;
+
+// --------------- Aula 65 --------------
+// Buscar todos os legendários
+db.pokemon.find({ legendary: true });
+
+// Buscar quantidade de legendários
+db.pokemon.find({ legendary: true }).count(); // Equivalente a: db.pokemon.count({ legendary: true });
+
+// --------------- Aula 66 --------------
+// Saber quais gerações existem
+db.pokemon.distinct('generation');
+
+// --------------- Aula 67 --------------
+// Buscando nomes por regex (todos que começam com Pi)
+db.pokemon.find({ name: /^Pi/ }).pretty();
+
+// --------------- Aula 68 --------------
+// Trabalhando com Projetion
+db.pokemon.find({ name: /^Pi/ }, { name: 1 });
+db.pokemon.find({ name: /^Pi/ }, { name: 1, _id: 0 });
+db.pokemon.find({ name: /^Pi/ }, { name: true });
+
+// --------------- Aula 69 --------------
+// Buscando nomes por regex (todos que começam com Pi, case insentive)
+db.pokemon.find({ name: /^pi/i }).pretty();
+
+// --------------- Aula 70 --------------
+// Encontrando pokemons mais forte com operadores de comparação (https://www.mongodb.com/docs/manual/reference/operator/query-comparison/)
+db.pokemon.find({ attack: { $gte: 85 } });
+
+// --------------- Aula 73 --------------
+// Buscando strings dentro de arrays
+db.pokemon.find({ types: 'Fire' }, { name: 1, types: 1, _id: 0 });
+
+// Buscando os que tem fogo ou Pedra
+db.pokemon.find({ types: { $in: ['Fire', 'Rock'] } }, { name: 1, types: 1, _id: 0 });
+
+// Buscando os que não tem fogo ou Pedra
+db.pokemon.find({ types: { $nin: ['Fire', 'Rock'] } }, { name: 1, types: 1, _id: 0 });
+
+// --------------- Aula 74 --------------
+// $in e $nin não servem só para arrays
+db.pokemon.find({ name: { $in: ['Pichu', 'Pikachu'] } }); // Todos que são Pichu ou Pikachu
+db.pokemon.find({ name: { $in: [/^Pi/, /^Pu/] } }); // Todos que começam com Pi ou Pu
+
+// --------------- Aula 76 --------------
+// Usuário que tem defesa entre 80 e 90
+db.pokemon.find({ defense: { $gte: 80, $lte: 90 }  }, { name: 1, defense: 1, _id: 0  })
+
+// --------------- Aula 77 --------------
+// Mesclando com OR ((Entre 60 e 72) ou (exatamente igual a 100))
+db.pokemon.find({
+    $or: [
+        {
+            defense: {
+                $gte: 60,
+                $lte: 72
+            }
+        },
+        {
+            defense: 100
+        }
+    ]
+},
+{ name: 1, defense: 1, _id: 0  });
+
+// --------------- Aula 78 --------------
+// Ou quero pokemons que tenham bastante defesa e bastante hp, ou bastante attack e bastante speed
+db.pokemon.find({
+    $or: [
+        {
+            defense: { $gte: 80 },
+            hp: { $gte: 80 }
+        },
+        {
+            attack: { $gte: 80 },
+            speed: { $gte: 80 },
+        }
+    ]
+}).pretty();
+
+// --------------- Aula 80 --------------
+// Ordenar os dados, a ordem que aparece no sort importa
+db.pokemon.find({
+    $or: [
+        {
+            defense: { $gte: 80 },
+            hp: { $gte: 80 }
+        },
+        {
+            attack: { $gte: 80 },
+            speed: { $gte: 80 },
+        }
+    ]
+}).sort({
+    hp: 1,
+    defense: -1,
+    attack: 1
+}).pretty();
+
+// --------------- Aula 82 --------------
+// Buscando pelo tamanho com $size e por valores com o $all (Busca todos que tem todos elementos do array)
+db.pokemon.find({
+    types: { $size: 2 }
+},
+{ name: 1, types: 1, _id: 0 });
+
+db.pokemon.find({
+    types: { $all: ['Rock', 'Flying'] }
+},
+{ name: 1, types: 1, _id: 0 });
+
+// --------------- Aula 85 --------------
+// Paginação
+db.pokemon.find({ types: 'Fire' }, { name: 1, attack: 1, _id: 0}).sort({ attack: -1 }).skip(10).limit(5);
+
+// --------------- Aula 86 --------------
+// Preparando pokemon com embeded document
+db.pokemon.find({ name: 'Pikachu' })
